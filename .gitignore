@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+super_admin_credentials.txt
+instance/
+static/uploads/
+__pycache__/
+*.py[cod]
+.venv/
+venv/

@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<!-- BACK BUTTON -->
+<button onclick="history.back()" class="btn btn-secondary mb-3">
+  ← Back
+</button>
+
+<!-- PAGE TITLE -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2>💳 Pay Fees</h2>
+    <p class="text-muted">
+      View and manage learner fee payments
+    </p>
+  </div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="row mb-4">
+
+  <div class="col-md-3">
+    <div class="card shadow-sm p-3 text-center">
+      <h6>Total Invoices</h6>
+      <h3>{{ invoices|length }}</h3>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm p-3 text-center">
+      <h6>Paid</h6>
+      <h3 class="text-success">
+        {{ invoices|selectattr('status','equalto','Paid')|list|length }}
+      </h3>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm p-3 text-center">
+      <h6>Pending</h6>
+      <h3 class="text-danger">
+        {{ invoices|rejectattr('status','equalto','Paid')|list|length }}
+      </h3>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm p-3 text-center">
+      <h6>Total Revenue</h6>
+      <h3 class="text-primary">
+        GHS {{ invoices|sum(attribute='partial_paid') }}
+      </h3>
+    </div>
+  </div>
+
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+
+  <h4 class="mb-3">🔍 Select Learner and Term Fees</h4>
+  <p class="text-muted">
+    The invoice includes tuition, Sports Levy, Library, and ICT. Payments are
+    recorded against the combined invoice balance.
+  </p>
+
+  <form method="POST">
+
+    <div class="row">
+
+      <div class="col-md-4 mb-3">
+
+        <select name="student_id" id="studentSelect" class="form-select" required>
+
+          <option value="">
+            Search learner...
+          </option>
+
+          {% for student in students %}
+
+          <option value="{{ student.id }}" {% if selected_student_id == student.id %}selected{% endif %}>
+            {{ student.name }}
+            - {{ student.admission_no }}
+            {% if student.classroom %}
+            ({{ student.classroom.name }})
+            {% endif %}
+          </option>
+
+          {% endfor %}
+
+        </select>
+
+      </div>
+
+      <div class="col-md-2 mb-3">
+        <label for="invoice_term" class="form-label">Term</label>
+        <select id="invoice_term" name="term" class="form-select" required>
+          <option value="">Select term</option>
+          <option value="Term 1">Term 1</option>
+          <option value="Term 2">Term 2</option>
+          <option value="Term 3">Term 3</option>
+        </select>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label for="invoice_academic_year" class="form-label">Academic Year</label>
+        <input
+          type="text"
+          id="invoice_academic_year"
+          name="academic_year"
+          class="form-control"
+          placeholder="e.g. 2026/2027"
+          required
+        >
+      </div>
+
+      <div class="col-md-3 mb-3 d-flex align-items-end">
+
+        <button type="submit" class="btn btn-success w-100">
+
+          Generate Invoice
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </form>
+
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+
+  <form method="GET" class="row g-3">
+
+    <div class="col-md-4">
+
+      <label class="form-label">
+        Filter By Class
+      </label>
+
+      <select name="class_id" class="form-select">
+
+        <option value="">
+          All Classes
+        </option>
+
+        {% for c in classes %}
+
+        <option value="{{ c.id }}" {% if selected_class|string==c.id|string %} selected {% endif %}>
+          {{ c.name }}
+        </option>
+
+        {% endfor %}
+
+      </select>
+
+    </div>
+
+    <div class="col-md-4">
+
+      <label class="form-label">
+        Filter By Status
+      </label>
+
+      <select name="status" class="form-select">
+
+        <option value="">
+          All Status
+        </option>
+
+        <option value="Paid">
+          Paid
+        </option>
+
+        <option value="Partial">
+          Partial
+        </option>
+
+        <option value="Pending">
+          Pending
+        </option>
+
+      </select>
+
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+
+      <button type="submit" class="btn btn-primary me-2">
+        Filter
+      </button>
+
+      <a href="{{ url_for('invoices') }}" class="btn btn-secondary">
+        Reset
+      </a>
+
+    </div>
+
+  </form>
+
+</div>
+
+<div class="mb-3">
+
+  <input type="text" id="invoiceSearch" class="form-control" placeholder="Search invoice by student name...">
+
+</div>
+
+<!-- INVOICE TABLE -->
+<div class="card shadow-sm p-4">
+
+  <h4 class="mb-3">📋 Invoice Records</h4>
+
+  <div class="table-responsive">
+
+    <table class="table table-hover align-middle">
+
+      <thead class="table-dark">
+        <tr>
+          <th>No.</th>
+          <th>Student</th>
+          <th>Class</th>
+          <th>Term / Year</th>
+          <th>Fee Breakdown</th>
+          <th>Total Amount</th>
+          <th>Paid</th>
+          <th>Balance</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for inv in invoices %}
+
+        <tr>
+
+          <td>{{ loop.index }}</td>
+
+          <td>
+            <strong>{{ inv.student.name }}</strong>
+          </td>
+
+          <td>
+            {% if inv.student.classroom %}
+            {{ inv.student.classroom.name }}
+            {% else %}
+            N/A
+            {% endif %}
+          </td>
+
+          <td>
+            {% if inv.term and inv.academic_year %}
+              {{ inv.term }}<br><small class="text-muted">{{ inv.academic_year }}</small>
+            {% else %}
+              <span class="text-muted">Legacy invoice</span>
+            {% endif %}
+          </td>
+
+          <td>
+            {% if inv.term %}
+              <small class="d-block">Tuition: GHS {{ "%.2f"|format(inv.tuition_fee or 0) }}</small>
+              <small class="d-block">Sports Levy: GHS {{ "%.2f"|format(inv.sports_fee or 0) }}</small>
+              <small class="d-block">Library: GHS {{ "%.2f"|format(inv.library_fee or 0) }}</small>
+              <small class="d-block">ICT: GHS {{ "%.2f"|format(inv.ict_fee or 0) }}</small>
+            {% else %}
+              <small class="text-muted">Item details unavailable</small>
+            {% endif %}
+          </td>
+
+          <td>
+            GHS {{ "%.2f"|format(inv.amount) }}
+          </td>
+
+          <td class="text-success fw-bold">
+            GHS {{ "%.2f"|format(inv.partial_paid or 0) }}
+          </td>
+
+          <td class="text-danger fw-bold">
+            GHS {{ "%.2f"|format(inv.amount - (inv.partial_paid or 0)) }}
+          </td>
+
+          <td>
+
+            {% if inv.status == 'Paid' %}
+
+            <span class="badge bg-success">
+              Paid
+            </span>
+
+            {% elif inv.status == 'Partial' %}
+
+            <span class="badge bg-warning text-dark">
+              Partial
+            </span>
+
+            {% else %}
+
+            <span class="badge bg-danger">
+              Pending
+            </span>
+
+            {% endif %}
+
+          </td>
+
+          <td>
+
+            <div class="d-flex flex-wrap gap-2">
+
+              <a href="{{ url_for('delete_invoice', id=inv.id) }}" class="btn btn-danger btn-sm"
+                onclick="return confirm('Delete invoice permanently?');">
+                Delete
+              </a>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+        {% else %}
+
+        <tr>
+          <td colspan="10" class="text-center text-muted">
+            No invoices available
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+<script>
+  function printInvoice(id) {
+    window.open("/print_invoice/" + id, "_blank");
+  }
+</script>
+
+<script>
+  $(document).ready(function () {
+
+    $('#studentSelect').select2({
+      placeholder: "Type student name...",
+      allowClear: true,
+      width: '100%'
+    });
+
+  });
+</script>
+
+<script>
+  document.getElementById("invoiceSearch").addEventListener("keyup", function () {
+
+    let value = this.value.toLowerCase();
+
+    document.querySelectorAll("tbody tr").forEach(row => {
+
+      row.style.display =
+        row.innerText.toLowerCase().includes(value)
+          ? ""
+          : "none";
+
+    });
+
+  });
+</script>
+
+{% endblock %}

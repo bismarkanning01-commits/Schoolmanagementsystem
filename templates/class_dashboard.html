@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<button onclick="history.back()"
+        class="btn btn-secondary mb-3">
+    ← Back
+</button>
+
+<h2>📊 Class Dashboard</h2>
+
+<!-- ACTION BUTTONS -->
+<div class="mb-4">
+
+    <a href="{{ url_for('attendance', class_id=class_id) }}"
+       class="btn btn-success">
+       📅 Attendance
+    </a>
+
+    <a href="{{ url_for('performance', class_id=class_id) }}"
+       class="btn btn-info">
+       📊 Performance
+    </a>
+
+    <a href="{{ url_for('ai_prediction', class_id=class_id) }}"
+       class="btn btn-warning">
+       🤖 AI Prediction
+    </a>
+
+</div>
+
+<hr>
+
+<!-- STATS -->
+<div class="row mt-4">
+
+  <div class="col-md-4">
+    <div class="card p-3 bg-info text-white text-center">
+      <h3>{{ total_students }}</h3>
+      <p>Students</p>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card p-3 bg-success text-white text-center">
+      <h3>{{ avg_score }}</h3>
+      <p>Average Score</p>
+    </div>
+  </div>
+
+</div>
+
+<hr>
+
+<!-- ================= CHART ================= -->
+
+<h4 class="mt-4">📈 Subject Performance Analytics</h4>
+
+<div class="card p-4">
+
+    <canvas id="classChart"></canvas>
+
+</div>
+
+<hr>
+
+<!-- TOP STUDENTS -->
+
+<h4 class="mt-4">🏆 Top Students</h4>
+
+<table class="table table-bordered">
+
+  <tr>
+    <th>Name</th>
+    <th>Average</th>
+  </tr>
+
+  {% for s in top_students %}
+    <tr>
+      <td>{{ s.name }}</td>
+      <td>{{ s.avg }}</td>
+    </tr>
+  {% endfor %}
+
+</table>
+
+<hr>
+
+<h4 class="mt-4 text-danger">🧠 Weak Students Detection</h4>
+
+<table class="table table-bordered">
+
+    <tr>
+        <th>Student</th>
+        <th>Average</th>
+        <th>Status</th>
+    </tr>
+
+    {% for w in weak_students %}
+
+    <tr>
+        <td>{{ w.name }}</td>
+        <td>{{ w.avg }}</td>
+        <td>
+            <span class="badge bg-danger">
+                {{ w.status }}
+            </span>
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+<!-- ================= CHART.JS ================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const ctx = document.getElementById('classChart');
+
+new Chart(ctx, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: {{ labels | tojson }},
+
+        datasets: [{
+
+            label: 'Average Score',
+
+            data: {{ values | tojson }},
+
+            borderWidth: 1
+
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">Other Income</h2>
+      <p class="text-muted mb-0">Record revenue not received as student fee payments.</p>
+    </div>
+    <a href="{{ url_for('finance') }}" class="btn btn-outline-secondary">Finance Dashboard</a>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white"><h5 class="mb-0">Record Income</h5></div>
+    <div class="card-body">
+      <form method="POST" class="row g-3">
+        <div class="col-md-4">
+          <label for="category" class="form-label">Income Category</label>
+          <select id="category" name="category" class="form-select" required>
+            <option value="">Select category</option>
+            <option>Admission</option>
+            <option>Registration</option>
+            <option>Uniforms</option>
+            <option>Books and stationery</option>
+            <option>Transport</option>
+            <option>Feeding</option>
+            <option>Donation or grant</option>
+            <option>Rental income</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="description" class="form-label">Description</label>
+          <input id="description" name="description" class="form-control" maxlength="255" required>
+        </div>
+        <div class="col-md-4">
+          <label for="amount" class="form-label">Amount (GH₵)</label>
+          <input id="amount" name="amount" type="number" min="0.01" step="0.01" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label for="received_date" class="form-label">Date Received</label>
+          <input id="received_date" name="received_date" type="date" value="{{ today }}" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label for="payment_method" class="form-label">Payment Method</label>
+          <select id="payment_method" name="payment_method" class="form-select" required>
+            <option>Cash</option>
+            <option>Momo</option>
+            <option>Bank</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="source" class="form-label">Payer / Source</label>
+          <input id="source" name="source" class="form-control" maxlength="150">
+        </div>
+        <div class="col-md-3">
+          <label for="reference" class="form-label">Reference</label>
+          <input id="reference" name="reference" class="form-control" maxlength="100">
+        </div>
+        <div class="col-12">
+          <label for="remarks" class="form-label">Remarks</label>
+          <textarea id="remarks" name="remarks" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success">Save Income</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-white"><h5 class="mb-0">Income History</h5></div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>No.</th>
+            <th>Date</th>
+            <th>Category / Description</th>
+            <th>Source</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ record.received_date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ record.category }}<br><small class="text-muted">{{ record.description }}</small></td>
+            <td>{{ record.source or '—' }}</td>
+            <td class="text-success fw-semibold">GH₵ {{ '%.2f'|format(record.amount|float) }}</td>
+            <td>{{ record.payment_method }}</td>
+            <td>{{ record.reference or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No other income has been recorded.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

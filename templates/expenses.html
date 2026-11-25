@@ -1,0 +1,70 @@
+{% extends 'base.html' %} {% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<button onclick="history.back()" class="btn btn-secondary mb-3">← Back</button>
+
+<h2>💸 Expenses Management</h2>
+
+<!-- FORM -->
+<div class="card p-3 mb-3">
+  <form method="POST" class="row g-2">
+    <div class="col">
+      <input
+        type="text"
+        name="title"
+        class="form-control"
+        placeholder="Expense Title"
+        required
+      />
+    </div>
+
+    <div class="col">
+      <input
+        type="number"
+        name="amount"
+        class="form-control"
+        placeholder="Amount"
+        required
+      />
+    </div>
+
+    <div class="col">
+      <select name="category" class="form-control">
+        <option>Salary</option>
+        <option>Utility</option>
+        <option>Maintenance</option>
+        <option>Transport</option>
+      </select>
+    </div>
+
+    <div class="col">
+      <button class="btn btn-danger">Add Expense</button>
+    </div>
+  </form>
+</div>
+
+<!-- TABLE -->
+<table class="table table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>Title</th>
+      <th>Amount</th>
+      <th>Category</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for e in expenses %}
+    <tr>
+      <td>{{ e.title }}</td>
+      <td>GHS {{ e.amount }}</td>
+      <td>{{ e.category }}</td>
+      <td>{{ e.date_created.strftime('%Y-%m-%d') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

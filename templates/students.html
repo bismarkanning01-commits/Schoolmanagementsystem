@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<!-- ====================================== -->
+<!-- 🔙 BACK BUTTON -->
+<!-- ====================================== -->
+<button onclick="history.back()" class="btn btn-secondary mb-3">
+  ← Back
+</button>
+
+<!-- ====================================== -->
+<!-- 👨‍🎓 HEADER -->
+<!-- ====================================== -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2>👨‍🎓 Students Management</h2>
+    <p class="text-muted">Manage all students in the system</p>
+  </div>
+</div>
+
+<!-- ====================================== -->
+<!-- 📊 STATS -->
+<!-- ====================================== -->
+<div class="row mb-4">
+
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3 text-center">
+      <h6>Total Students</h6>
+      <h2 class="text-primary">{{ students|length }}</h2>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3 text-center">
+      <h6>Total Classes</h6>
+      <h2 class="text-success">{{ classes|length }}</h2>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3 text-center">
+      <h6>Filter</h6>
+      <h5>
+        {% if selected_class %}
+          {% for c in classes %}
+            {% if selected_class|string == c.id|string %}
+              {{ c.name }}
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          All Classes
+        {% endif %}
+      </h5>
+    </div>
+  </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- ➕ ADD STUDENT -->
+<!-- ====================================== -->
+{% if session['role'] == 'admin' %}
+
+<div class="card shadow-sm p-4 mb-4">
+  <h4>➕ Add Student</h4>
+
+  <form method="POST">
+    <div class="row">
+
+      <div class="col-md-4 mb-2">
+        <input type="text" name="name" class="form-control"
+               placeholder="Student Name" required>
+      </div>
+
+      <div class="col-md-4 mb-2">
+        <input type="text" name="phone" class="form-control"
+               placeholder="Phone Number">
+      </div>
+
+      <div class="col-md-4 mb-2">
+        <input type="text" name="parent_phone" class="form-control"
+               placeholder="Parent/Guardian Phone Number">
+      </div>
+
+      <div class="col-md-4 mb-2">
+        <select name="gender" class="form-control" required>
+          <option value="">-- Select Gender --</option>
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+        </select>
+      </div>
+
+      <div class="col-md-4 mb-2">
+        <select name="class_id" class="form-control" required>
+          <option value="">-- Select Class --</option>
+
+          {% for c in classes %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+
+        </select>
+      </div>
+
+    </div>
+
+    <button class="btn btn-primary">Add Student</button>
+  </form>
+</div>
+
+{% endif %}
+
+<!-- ====================================== -->
+<!-- 🔍 FILTER -->
+<!-- ====================================== -->
+<div class="card shadow-sm p-4 mb-4">
+  <h4>Filter Students</h4>
+
+  <form method="GET" class="row">
+
+    <div class="col-md-4">
+      <select name="class_id" class="form-control" onchange="this.form.submit()">
+
+        <option value="">All Classes</option>
+
+        {% for c in classes %}
+          <option value="{{ c.id }}"
+            {% if selected_class and selected_class|string == c.id|string %}
+              selected
+            {% endif %}
+          >
+            {{ c.name }}
+          </option>
+        {% endfor %}
+
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <a href="{{ url_for('students') }}" class="btn btn-secondary w-100">
+        Reset
+      </a>
+    </div>
+
+  </form>
+</div>
+
+<!-- ====================================== -->
+<!-- 📚 STUDENT TABLE -->
+<!-- ====================================== -->
+<div class="card shadow-sm p-4">
+
+  <h4>Student List</h4>
+
+  <table class="table table-hover table-bordered">
+
+    <thead class="table-dark">
+      <tr>
+        <th>No.</th>
+        <th>Student ID</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Class</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      {% for s in students %}
+      <tr>
+
+        <td>{{ loop.index }}</td>
+
+        <td>{{ s.admission_no or '—' }}</td>
+
+        <td>{{ s.name }}</td>
+
+        <td>
+          {% if s.phone %}
+            {{ s.phone }}
+          {% else %}
+            <span class="text-muted">No Phone</span>
+          {% endif %}
+        </td>
+
+        <td>
+          {% if s.classroom %}
+            <span class="badge bg-primary">{{ s.classroom.name }}</span>
+          {% else %}
+            <span class="badge bg-secondary">N/A</span>
+          {% endif %}
+        </td>
+
+        <td>
+          {% if s.created_at %}
+            {{ s.created_at.strftime('%Y-%m-%d') }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <td>
+          <a href="{{ url_for('edit_student', id=s.id) }}" class="btn btn-warning btn-sm">
+            Edit
+          </a>
+
+          <a href="{{ url_for('delete_student', id=s.id) }}"
+             class="btn btn-danger btn-sm"
+             onclick="return confirm('Delete this student?')">
+            Delete
+          </a>
+        </td>
+
+      </tr>
+
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center text-muted">
+          No students found
+        </td>
+      </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+
+</div>
+
+{% endblock %}

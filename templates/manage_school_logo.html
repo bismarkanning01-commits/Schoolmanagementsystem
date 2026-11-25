@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h2 class="mb-2">Upload School Logo</h2>
+            <p class="text-muted">Upload a JPG or PNG image up to 5 MB. The logo will appear on learner terminal reports and downloaded PDFs.</p>
+
+            {% if school_logo_url %}
+            <div class="mb-4">
+                <label class="form-label d-block">Current school logo</label>
+                <img
+                    src="{{ school_logo_url }}"
+                    alt="Current school logo"
+                    class="img-thumbnail"
+                    style="max-width: 180px; max-height: 180px; object-fit: contain;"
+                >
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="school_logo" class="form-label">Choose school logo</label>
+                    <input
+                        type="file"
+                        class="form-control"
+                        id="school_logo"
+                        name="school_logo"
+                        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-upload me-1" aria-hidden="true"></i>
+                    Upload Logo
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

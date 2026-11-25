@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admission Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <main class="container py-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 760px;">
+      <div class="card-body p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+          <div>
+            <h1 class="h3 mb-2">Student Admission Portal</h1>
+            <p class="text-muted mb-0">Submit an application for review by the school.</p>
+          </div>
+          <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Home</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'warning' if category == 'warning' else 'info' }}">
+          {{ message }}
+        </div>
+        {% endfor %}
+        {% endwith %}
+
+        {% if classes %}
+        <form method="POST" enctype="multipart/form-data">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label for="name" class="form-label">Student's full name</label>
+              <input id="name" name="name" class="form-control"
+                     value="{{ form.get('name', '') }}" required maxlength="100">
+            </div>
+            <div class="col-md-4">
+              <label for="gender" class="form-label">Gender</label>
+              <select id="gender" name="gender" class="form-select" required>
+                <option value="">Select gender</option>
+                <option value="Male" {% if form.get('gender') == 'Male' %}selected{% endif %}>Male</option>
+                <option value="Female" {% if form.get('gender') == 'Female' %}selected{% endif %}>Female</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="dob" class="form-label">Date of birth</label>
+              <input id="dob" name="dob" type="date" class="form-control"
+                     value="{{ form.get('dob', '') }}">
+            </div>
+            <div class="col-md-6">
+              <label for="class_id" class="form-label">School and class applying for</label>
+              <select id="class_id" name="class_id" class="form-select" required>
+                <option value="">Choose a school and class</option>
+                {% for classroom in classes %}
+                <option value="{{ classroom.id }}"
+                        {% if form.get('class_id')|string == classroom.id|string %}selected{% endif %}>
+                  {{ classroom.school.name if classroom.school else 'School' }} - {{ classroom.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Student phone (optional)</label>
+              <input id="phone" name="phone" type="tel" class="form-control"
+                     value="{{ form.get('phone', '') }}" placeholder="0241234567">
+            </div>
+            <div class="col-md-6">
+              <label for="parent_phone" class="form-label">Parent/guardian phone (optional)</label>
+              <input id="parent_phone" name="parent_phone" type="tel" class="form-control"
+                     value="{{ form.get('parent_phone', '') }}" placeholder="0241234567">
+            </div>
+            <div class="col-12">
+              <label for="passport_photo" class="form-label">Learner passport photo</label>
+              <input id="passport_photo" name="passport_photo" type="file" class="form-control"
+                     accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+              <div class="form-text">JPG or PNG, up to 5 MB. Required to submit the application.</div>
+            </div>
+          </div>
+          <div class="alert alert-secondary mt-4 mb-3">
+            A school-prefixed student ID will be assigned when you submit. The application
+            remains pending until the school reviews it.
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Admission Application</button>
+        </form>
+        {% else %}
+        <div class="alert alert-warning mb-0">
+          Admission applications are not available because no classes have been set up yet.
+          Please contact the school.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1">Students</h2>
+            <p class="text-muted mb-0">Read-only student list for your school.</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="{{ url_for('headmaster_dashboard') }}">Dashboard</a>
+    </div>
+    <form method="get" class="card card-body border-0 shadow-sm mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label for="student-search" class="form-label">Student name or admission number</label>
+                <input id="student-search" class="form-control" type="search" name="search"
+                       value="{{ search }}" placeholder="Search students">
+            </div>
+            <div class="col-md-4">
+                <label for="student-class" class="form-label">Class</label>
+                <select id="student-class" class="form-select" name="class_id">
+                    <option value="">All classes</option>
+                    {% for classroom in classes %}
+                    <option value="{{ classroom.id }}"
+                            {% if classroom.id == selected_class_id %}selected{% endif %}>
+                        {{ classroom.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-auto d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Filter</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('headmaster_students') }}">Clear</a>
+            </div>
+        </div>
+    </form>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Admission No.</th><th>Student</th><th>Class</th><th>Gender</th></tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.admission_no or '—' }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.classroom.name if student.classroom else '—' }}</td>
+                        <td>{{ student.gender or '—' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted py-4">No students found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

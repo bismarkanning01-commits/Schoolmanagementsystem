@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1">Attendance</h2>
+            <p class="text-muted mb-0">Latest attendance records for your school (up to 200).</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="{{ url_for('headmaster_dashboard') }}">Dashboard</a>
+    </div>
+    <form method="get" class="card card-body border-0 shadow-sm mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-sm-6 col-lg-3">
+                <label for="attendance-search" class="form-label">Student name or admission number</label>
+                <input id="attendance-search" class="form-control" type="search" name="search"
+                       value="{{ search }}" placeholder="Search students">
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="attendance-class" class="form-label">Class</label>
+                <select id="attendance-class" class="form-select" name="class_id">
+                    <option value="">All classes</option>
+                    {% for classroom in classes %}
+                    <option value="{{ classroom.id }}"
+                            {% if classroom.id == selected_class_id %}selected{% endif %}>
+                        {{ classroom.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="attendance-status" class="form-label">Status</label>
+                <select id="attendance-status" class="form-select" name="status">
+                    <option value="">All statuses</option>
+                    <option value="Present" {% if selected_status == 'Present' %}selected{% endif %}>Present</option>
+                    <option value="Absent" {% if selected_status == 'Absent' %}selected{% endif %}>Absent</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="attendance-term" class="form-label">Term</label>
+                <select id="attendance-term" class="form-select" name="term">
+                    <option value="">All terms</option>
+                    {% for term in terms %}
+                    <option value="{{ term }}" {% if selected_term == term %}selected{% endif %}>{{ term }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="attendance-year" class="form-label">Academic year</label>
+                <select id="attendance-year" class="form-select" name="academic_year">
+                    <option value="">All years</option>
+                    {% for year in academic_years %}
+                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="attendance-start-date" class="form-label">From date</label>
+                <input id="attendance-start-date" class="form-control" type="date" name="start_date"
+                       value="{{ start_value }}">
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="attendance-end-date" class="form-label">To date</label>
+                <input id="attendance-end-date" class="form-control" type="date" name="end_date"
+                       value="{{ end_value }}">
+            </div>
+            <div class="col-md-auto d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Filter</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('headmaster_attendance') }}">Clear</a>
+            </div>
+        </div>
+    </form>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Date</th><th>Student</th><th>Class</th><th>Status</th><th>Term</th><th>Academic Year</th></tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.date or '—' }}</td>
+                        <td>{{ record.student.name if record.student else '—' }}</td>
+                        <td>{{ record.student.classroom.name if record.student and record.student.classroom else '—' }}</td>
+                        <td>{{ record.status }}</td>
+                        <td>{{ record.term or '—' }}</td>
+                        <td>{{ record.academic_year or '—' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">No attendance records found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

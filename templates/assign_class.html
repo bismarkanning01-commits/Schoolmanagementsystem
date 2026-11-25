@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<button onclick="history.back()"
+        class="btn btn-secondary mb-3">
+    ← Back
+</button>
+
+<div class="container mt-4">
+
+    <div class="card shadow-lg border-0">
+
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">🎯 Assign Class to Teacher</h3>
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST">
+
+                <!-- TEACHER -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        Teacher
+                    </label>
+
+                    <select name="teacher_id"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            -- Select Teacher --
+                        </option>
+
+                        {% for t in teachers %}
+                            <option value="{{ t.id }}">
+                                {{ t.username }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- CLASS -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        Class
+                    </label>
+
+                    <select name="class_id"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            -- Select Class --
+                        </option>
+
+                        {% for c in classes %}
+                            <option value="{{ c.id }}">
+                                {{ c.name }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-success">
+                    ✅ Assign Class
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

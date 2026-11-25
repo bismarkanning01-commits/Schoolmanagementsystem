@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow p-4">
+
+        <h2>👩‍🏫 Register Teacher</h2>
+
+        <form method="POST">
+
+            <div class="mb-3">
+
+                <label>Username</label>
+
+                <input type="text"
+                       name="username"
+                       class="form-control"
+                       required>
+
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input id="email"
+                       type="email"
+                       name="email"
+                       class="form-control"
+                       maxlength="254"
+                       autocomplete="email"
+                       required>
+            </div>
+
+            <div class="mb-3">
+
+                <label>Password</label>
+
+                <input type="password"
+                       name="password"
+                       class="form-control"
+                       required>
+
+            </div>
+
+            <div class="mb-3">
+                <label for="class_id" class="form-label">Assign Class</label>
+                <select id="class_id" name="class_id" class="form-select">
+                    <option value="">Select a class (optional)</option>
+                    {% for classroom in classes %}
+                    <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">You can assign additional classes later from the admin page.</div>
+            </div>
+
+            <button class="btn btn-primary">
+                Register Teacher
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

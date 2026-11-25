@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+
+<button onclick="history.back()"
+        class="btn btn-secondary mb-3">
+    ← Back
+</button>
+
+<h2>🤖 AI Student Prediction</h2>
+
+<div class="card p-4">
+
+    <h4>{{ student.name }}</h4>
+
+    <hr>
+
+    <h5>
+        📊 Predicted Final Score:
+        <span class="text-primary">
+            {{ predicted_score }}
+        </span>
+    </h5>
+
+    <h5>
+        🧠 AI Status:
+        <span class="text-danger">
+            {{ risk }}
+        </span>
+    </h5>
+
+</div>
+
+{% endblock %}

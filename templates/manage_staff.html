@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-person-badge-fill text-primary me-2"></i>Manage Staff</h2>
+            <p class="text-muted mb-0">View staff accounts and the classes assigned to teachers.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('register_teacher') }}" class="btn btn-primary">
+                <i class="bi bi-person-plus-fill me-1"></i> Register Teacher
+            </a>
+            <a href="{{ url_for('register_accountant') }}" class="btn btn-outline-primary">
+                <i class="bi bi-person-plus me-1"></i> Register Accountant
+            </a>
+            <a href="{{ url_for('register_headmaster') }}" class="btn btn-outline-primary">
+                <i class="bi bi-person-plus me-1"></i> Register Headmaster
+            </a>
+        </div>
+    </div>
+
+    {% if temporary_password %}
+    <div class="alert alert-warning" role="alert">
+        <strong>Temporary password for {{ temporary_username }}:</strong>
+        <code class="user-select-all">{{ temporary_password }}</code>
+        <div class="small mt-1">
+            Copy it now and give it to the user securely. They must choose a
+            new password at their next sign-in; this password is shown only
+            on this response.
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small text-uppercase fw-semibold">Teachers</div>
+                        <div class="fs-3 fw-bold">{{ teachers|length }}</div>
+                    </div>
+                    <i class="bi bi-person-workspace fs-2 text-primary" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small text-uppercase fw-semibold">Accountants</div>
+                        <div class="fs-3 fw-bold">{{ accountants|length }}</div>
+                    </div>
+                    <i class="bi bi-calculator-fill fs-2 text-success" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small text-uppercase fw-semibold">Administrators</div>
+                        <div class="fs-3 fw-bold">{{ admins|length }}</div>
+                    </div>
+                    <i class="bi bi-shield-lock-fill fs-2 text-warning" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small text-uppercase fw-semibold">Headmasters</div>
+                        <div class="fs-3 fw-bold">{{ headmasters|length }}</div>
+                    </div>
+                    <i class="bi bi-mortarboard-fill fs-2 text-info" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="bi bi-person-workspace me-2 text-primary"></i>Teachers</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Staff member</th>
+                        <th scope="col">Assigned classes</th>
+                        <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff_member in teachers %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ staff_member.username }}</div>
+                            <small class="text-muted">Teacher · No. {{ loop.index }}</small>
+                        </td>
+                        <td>
+                            {% if staff_member.classes %}
+                                {% for classroom in staff_member.classes|sort(attribute='name') %}
+                                <span class="badge rounded-pill text-bg-primary me-1 mb-1">{{ classroom.name }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">No class assigned</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('edit_user', user_id=staff_member.id) }}"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil me-1" aria-hidden="true"></i> Edit
+                            </a>
+                            <form method="POST"
+                                  action="{{ url_for('reset_user_password', user_id=staff_member.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Reset this teacher password? A temporary password will be shown once.');">
+                                <button type="submit" class="btn btn-sm btn-outline-warning me-1">
+                                    Reset password
+                                </button>
+                            </form>
+                            <a href="{{ url_for('delete_user', user_id=staff_member.id) }}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Remove this teacher account?');">
+                                <i class="bi bi-person-x me-1" aria-hidden="true"></i> Remove
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">No teachers registered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="bi bi-mortarboard-fill me-2 text-info"></i>Headmasters</h5>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for staff_member in headmasters %}
+            <div class="list-group-item d-flex justify-content-between align-items-center gap-3 py-3">
+                <div>
+                    <div class="fw-semibold">{{ staff_member.username }}</div>
+                    <small class="text-muted">Headmaster · No. {{ loop.index }}</small>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('edit_user', user_id=staff_member.id) }}"
+                       class="btn btn-sm btn-outline-primary">Edit</a>
+                    <form method="POST"
+                          action="{{ url_for('reset_user_password', user_id=staff_member.id) }}"
+                          class="d-inline"
+                          onsubmit="return confirm('Reset this headmaster password? A temporary password will be shown once.');">
+                        <button type="submit" class="btn btn-sm btn-outline-warning">
+                            Reset password
+                        </button>
+                    </form>
+                    <a href="{{ url_for('delete_user', user_id=staff_member.id) }}"
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('Remove this headmaster account?');">
+                        Remove
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="list-group-item text-center text-muted py-4">
+                No headmasters registered yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-calculator-fill me-2 text-success"></i>Accountants</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for staff_member in accountants %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center gap-3 py-3">
+                        <div>
+                            <div class="fw-semibold">{{ staff_member.username }}</div>
+                            <small class="text-muted">Accountant · No. {{ loop.index }}</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('edit_user', user_id=staff_member.id) }}"
+                               class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form method="POST"
+                                  action="{{ url_for('reset_user_password', user_id=staff_member.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Reset this accountant password? A temporary password will be shown once.');">
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    Reset password
+                                </button>
+                            </form>
+                            <a href="{{ url_for('delete_user', user_id=staff_member.id) }}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Remove this accountant account?');">
+                                Remove
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">No accountants registered yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-shield-lock-fill me-2 text-warning"></i>Administrators</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for staff_member in admins %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center gap-3 py-3">
+                        <div>
+                            <div class="fw-semibold">{{ staff_member.username }}</div>
+                            <small class="text-muted">Administrator · No. {{ loop.index }}</small>
+                        </div>
+                        {% if staff_member.id == session.get('user_id') %}
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge text-bg-primary">You</span>
+                            <a href="{{ url_for('edit_user', user_id=staff_member.id) }}"
+                               class="btn btn-sm btn-outline-primary">Edit</a>
+                        </div>
+                        {% else %}
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge text-bg-light">Administrator</span>
+                            <a href="{{ url_for('edit_user', user_id=staff_member.id) }}"
+                               class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form method="POST"
+                                  action="{{ url_for('reset_user_password', user_id=staff_member.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Reset this administrator password? A temporary password will be shown once.');">
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    Reset password
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">No administrators found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

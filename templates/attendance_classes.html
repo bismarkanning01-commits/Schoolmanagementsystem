@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<button onclick="history.back()"
+        class="btn btn-secondary mb-3">
+    ← Back
+</button>
+
+<div class="container">
+
+    <h2 class="mb-4">📅 Select Class Attendance</h2>
+
+    <div class="row">
+
+        {% for c in classes %}
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card shadow p-3 text-center">
+
+                <h4>{{ c.name }}</h4>
+
+                <a href="{{ url_for('attendance', class_id=c.id) }}"
+                   class="btn btn-primary mt-3">
+
+                    Open Attendance
+
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

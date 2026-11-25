@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<button onclick="history.back()"
+        class="btn btn-secondary mb-3">
+    ← Back
+</button>
+
+<h2 class="mb-4">📚 Teacher Dashboard</h2>
+
+<!-- 🔍 SEARCH + FILTER BAR -->
+<div class="d-flex justify-content-between mb-3">
+
+    <input type="text" id="searchInput"
+        class="form-control w-25"
+        placeholder="🔍 Search student...">
+
+    <form method="GET" class="d-flex">
+        <select name="class_id" class="form-control me-2">
+            <option value="">All Classes</option>
+            {% for c in classes %}
+                <option value="{{ c.id }}"
+                    {% if class_id == c.id|string %}selected{% endif %}>
+                    {{ c.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button class="btn btn-primary btn-sm">Filter</button>
+    </form>
+
+</div>
+
+<!-- 📊 SUMMARY -->
+<div class="row">
+
+  <div class="col-md-3">
+    <div class="card p-3 bg-info text-white text-center">
+      <h3>{{ total_students }}</h3>
+      <p>Students</p>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card p-3 bg-success text-white text-center">
+      <h3>{{ present_today }}</h3>
+      <p>Present Today</p>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card p-3 bg-danger text-white text-center">
+      <h3>{{ absent_today }}</h3>
+      <p>Absent Today</p>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card p-3 bg-warning text-dark text-center">
+      <h3>{{ at_risk }}</h3>
+      <p>At Risk</p>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- 📋 STUDENTS TABLE -->
+<div class="mt-4">
+  <h4>👨‍🎓 Students</h4>
+
+  <table class="table table-hover" id="studentTable">
+    <thead class="table-dark">
+      <tr>
+        <th>No.</th>
+        <th>Name</th>
+        <th>Quick Score</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ s.name }}</td>
+
+        <!-- ⚡ QUICK SCORE -->
+        <td style="min-width:450px;">
+        
+          <form class="quick-score-form">
+        
+            <input type="hidden" name="student_id" value="{{ s.id }}">
+        
+            <div class="row g-1">
+        
+              <div class="col-md-3">
+                <input type="text" name="subject" class="form-control form-control-sm" placeholder="Subject" required>
+              </div>
+        
+              <div class="col-md-3">
+                <input type="number" name="class_score" class="form-control form-control-sm" placeholder="Class(30)" min="0"
+                  max="30" required>
+              </div>
+        
+              <div class="col-md-3">
+                <input type="number" name="exam_score" class="form-control form-control-sm" placeholder="Exam(70)" min="0"
+                  max="70" required>
+              </div>
+        
+              <div class="col-md-3">
+                <button class="btn btn-primary btn-sm w-100">
+                  Save
+                </button>
+              </div>
+        
+            </div>
+        
+          </form>
+        
+        </td>
+
+        <!-- ⚠️ STATUS -->
+        <td>
+          {% set weak = false %}
+          {% for w in weak_students %}
+              {% if w.name == s.name %}
+                  {% set weak = true %}
+              {% endif %}
+          {% endfor %}
+
+          {% if weak %}
+              <span class="badge bg-danger">Weak</span>
+          {% else %}
+              <span class="badge bg-success">OK</span>
+          {% endif %}
+        </td>
+
+        <!-- 🎯 ACTIONS -->
+        
+        <td>
+        
+          {% if class_id %}
+          <a href="{{ url_for('attendance', class_id=s.class_id) }}" class="btn btn-success btn-sm">
+            Attendance
+          </a>
+          
+          {% endif %}
+        
+          <a href="{{ url_for('performance', student_id=s.id) }}" class="btn btn-sm btn-primary">
+            Score
+          </a>
+        
+        </td>
+
+
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+</div>
+
+<!-- 🏆 TOP STUDENTS -->
+<div class="mt-5">
+  <h4>🏆 Top Students</h4>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Average</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for s in top_students %}
+      <tr>
+        <td>{{ s.name }}</td>
+        <td>{{ "%.2f"|format(s.avg) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ⚠️ WEAK STUDENTS -->
+<div class="mt-5">
+  <h4 class="text-danger">⚠️ Weak Students</h4>
+
+  {% if weak_students %}
+  <table class="table table-bordered">
+    <tr>
+      <th>Name</th>
+      <th>Average</th>
+    </tr>
+
+    {% for s in weak_students %}
+    <tr>
+      <td>{{ s.name }}</td>
+      <td>{{ "%.2f"|format(s.avg) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    <p class="text-success">No weak students 🎉</p>
+  {% endif %}
+</div>
+
+<!-- 🎯 QUICK ACTIONS -->
+
+<div class="mt-4">
+
+  {% if class_id %}
+
+  <a href="{{ url_for('mark_all_present', class_id=class_id) }}" class="btn btn-success btn-sm">
+    ✅ Mark All Present
+  </a>
+
+  <a href="{{ url_for('attendance', class_id=class_id) }}" class="btn btn-info btn-sm">
+    📅 Attendance Page
+  </a>
+
+  {% endif %}
+
+</div>
+
+
+<!-- 📊 CHART -->
+<div class="mt-5">
+  <h4>📈 Subject Performance</h4>
+  <canvas id="performanceChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const subjects = {{ subjects | tojson }};
+const scores = {{ scores | tojson }};
+
+new Chart(document.getElementById("performanceChart"), {
+    type: 'line',
+    data: {
+        labels: subjects,
+        datasets: [{
+            label: 'Average Score',
+            data: scores,
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,0.2)',
+            fill: true
+        }]
+    }
+});
+</script>
+
+<!-- 🔍 SEARCH SCRIPT -->
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function() {
+    let value = this.value.toLowerCase();
+    document.querySelectorAll("#studentTable tbody tr").forEach(row => {
+        row.style.display =
+            row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+});
+</script>
+
+<!-- ⚡ QUICK SCORE AJAX -->
+<script>
+document.querySelectorAll(".quick-score-form").forEach(form => {
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        fetch("/quick_score", {
+            method: "POST",
+            body: new FormData(form)
+        })
+        .then(() => {
+            alert("Score saved!");
+            form.reset();
+        });
+    });
+});
+</script>
+
+{% endblock %}

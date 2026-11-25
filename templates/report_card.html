@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<button onclick="history.back()" class="btn btn-secondary mb-3">
+  ← Back
+</button>
+
+<div class="card shadow p-4">
+
+  <!-- SCHOOL HEADER -->
+  <div class="text-center">
+
+    <img src="{{ school_logo_url or url_for('static', filename='img/logo.png') }}" width="100" class="mb-2" alt="School logo">
+
+    <h2>SENIOR VICTORY COLLEGE</h2>
+
+    <h5 class="text-primary">
+      LEARNER'S TERMINAL REPORT
+    </h5>
+
+    <hr>
+
+  </div>
+
+  <!-- STUDENT DETAILS -->
+
+  <div class="row mb-4">
+
+    <div class="col-md-9">
+
+      <table class="table table-bordered">
+
+        <tr>
+          <th>Name Of Learner</th>
+          <td>{{ student.name }}</td>
+
+          <th>Number On Roll</th>
+          <td>{{ class_roll_number }}</td>
+        </tr>
+
+        <tr>
+          <th>Class</th>
+          <td>{{ student.classroom.name }}</td>
+
+          <th>Gender</th>
+          <td>{{ student.gender or 'Not set' }}</td>
+        </tr>
+
+        <tr>
+          <th>Academic Year</th>
+          <td>{{ year }}</td>
+        </tr>
+
+        <tr>
+          <th>Position In Class</th>
+          <td>{{ position }}</td>
+
+          <th>Term</th>
+          <td>{{ term }}</td>
+        </tr>
+
+        <tr>
+
+          <th>Average Mark</th>
+          <td>{{ average }}</td>
+
+          <th>Average Remark</th>
+          <td>{{ average_remark }}</td>
+
+        </tr>
+
+        <tr>
+          <th>{{ promotion_label }}</th>
+          <td>{{ promoted_to }}</td>
+
+          <th>Next Term Begins</th>
+          <td>{{ next_term_begins }}</td>
+        </tr>
+
+      </table>
+
+    </div>
+
+    <div class="col-md-3 text-center">
+
+      <img src="{{ student_photo_url or url_for('static', filename='img/default_student.png') }}" width="140" height="170"
+        class="img-thumbnail">
+
+      {% if session.get('role') in ('admin', 'teacher') %}
+        <form method="post" enctype="multipart/form-data" class="mt-2">
+          <input type="hidden" name="action" value="upload_passport_photo">
+          <label for="passport_photo" class="form-label">Learner Passport Photo</label>
+          <input
+            type="file"
+            id="passport_photo"
+            name="passport_photo"
+            class="form-control form-control-sm"
+            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+            required
+          >
+          <button type="submit" class="btn btn-primary btn-sm mt-2">
+            Upload Photo
+          </button>
+        </form>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+  <form method="post" class="mt-3">
+    <label for="next_term_begins" class="form-label">
+      Set next-term start date
+    </label>
+    <div class="input-group">
+      <input
+        type="date"
+        id="next_term_begins"
+        name="next_term_begins"
+        class="form-control"
+        value="{{ next_term_begins_input }}"
+        required
+      >
+      <button type="submit" class="btn btn-primary">Save Date</button>
+    </div>
+  </form>
+
+  <!-- SUBJECT TABLE -->
+
+  <table class="table table-bordered table-striped text-center">
+
+    <thead class="table-dark">
+
+      <tr>
+
+        <th>S/N</th>
+
+        <th>Subject</th>
+
+        <th>Class Score (30%)</th>
+
+        <th>Exam Score (70%)</th>
+
+        <th>Total Score (100%)</th>
+
+        <th>Grade</th>
+
+        <th>Remark</th>
+
+        <th>Position In Subject</th>
+
+      </tr>
+
+    </thead>
+
+    <tbody>
+
+      {% for p in subject_results %}
+
+      <tr>
+
+        <td>{{ loop.index }}</td>
+
+        <td>{{ p.subject }}</td>
+
+        <td>{{ p.class_score }}</td>
+
+        <td>{{ p.exam_score }}</td>
+
+        <td>
+          <strong>{{ p.total_score }}</strong>
+        </td>
+
+        <td>{{ p.grade }}</td>
+
+        <td>{{ p.remark }}</td>
+
+        <td>{{ p.position }}</td>
+
+      </tr>
+
+      {% endfor %}
+
+    </tbody>
+
+    <tfoot>
+
+      <tr class="table-secondary">
+
+        <th colspan="4">
+          OVERALL
+        </th>
+
+        <th>
+          {{ total_score }}
+        </th>
+
+        <th colspan="3">
+          OUT OF {{ subject_results|length * 100 }}
+        </th>
+
+      </tr>
+
+    </tfoot>
+
+  </table>
+
+  <!-- SUMMARY -->
+
+  <div class="row text-center mt-3">
+
+    <div class="col-md-4">
+
+      <h6>Total Score</h6>
+
+      <h4>{{ total_score }}</h4>
+
+    </div>
+
+    <div class="col-md-4">
+
+      <h6>Average</h6>
+
+      <h4>{{ average }}</h4>
+
+    </div>
+
+    <div class="col-md-4">
+
+      <h6>GPA</h6>
+
+      <h4>{{ gpa }}</h4>
+
+    </div>
+
+  </div>
+
+  <hr>
+
+  <!-- ATTENDANCE + REMARKS -->
+
+  <div class="row">
+
+    <div class="col-md-7">
+
+      <table class="table table-bordered">
+
+        <tr>
+          <th>Attendance</th>
+          <td>{{ attendance|default(0) }}</td>
+        </tr>
+
+        <tr>
+          <th>Conduct</th>
+          <td>Excellent</td>
+        </tr>
+
+        <tr>
+          <th>Attitude</th>
+          <td>Good</td>
+        </tr>
+
+        <tr>
+          <th>Interest</th>
+          <td>Excellent</td>
+        </tr>
+
+        <tr>
+          <th>Teacher Remark</th>
+
+          <td>
+
+            {% if average >= 80 %}
+            Excellent! Keep it up.
+            {% elif average >= 70 %}
+            Very Good.
+            {% elif average >= 60 %}
+            Good.
+            {% elif average >= 50 %}
+            Fair.
+            {% else %}
+            Needs Improvement.
+            {% endif %}
+
+          </td>
+
+        </tr>
+
+        <tr>
+
+          <th>Headmaster Remark</th>
+
+          <td>
+
+            {% if average >= 50 %}
+            Promoted
+            {% else %}
+            Repeat
+            {% endif %}
+
+          </td>
+
+        </tr>
+
+      </table>
+
+    </div>
+
+    <!-- BILL SECTION -->
+
+    <div class="col-md-5">
+
+      <table class="table table-bordered">
+
+        <thead class="table-primary">
+
+          <tr>
+
+            <th colspan="2">
+              UPCOMING BILL: {{ bill_term }} ({{ bill_year }}) (GH₵)
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tr>
+          <td>Tuition Fee</td>
+          <td>GH₵ {{ '%.2f'|format(tuition_fee|default(0)|float) }}</td>
+        </tr>
+
+        <tr>
+          <td>Sports Levy</td>
+          <td>GH₵ {{ '%.2f'|format(sports_fee|default(0)|float) }}</td>
+        </tr>
+
+        <tr>
+          <td>Library</td>
+          <td>GH₵ {{ '%.2f'|format(library_fee|default(0)|float) }}</td>
+        </tr>
+
+        <tr>
+          <td>ICT</td>
+          <td>GH₵ {{ '%.2f'|format(ict_fee|default(0)|float) }}</td>
+        </tr>
+
+        <tr>
+          <td>Previous Arrears</td>
+          <td>GH₵ {{ '%.2f'|format(arrears|default(0)|float) }}</td>
+        </tr>
+
+        <tr>
+
+          <td><strong>Total</strong></td>
+
+          <td>
+            <strong>GH₵ {{ '%.2f'|format(total_bill|default(0)|float) }}</strong>
+          </td>
+
+        </tr>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <!-- CHART -->
+
+  <h5 class="mt-4">
+    📊 Subject Performance
+  </h5>
+
+  <canvas id="subjectChart"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+
+    const subjects =
+      {{ subject_results | map(attribute = 'subject') | list | tojson }};
+
+    const scores =
+      {{ subject_results | map(attribute = 'total_score') | list | tojson }};
+
+    new Chart(
+      document.getElementById("subjectChart"),
+      {
+        type: "bar",
+        data: {
+          labels: subjects,
+          datasets: [{
+            label: "Total Score",
+            data: scores,
+            backgroundColor: "#0d6efd"
+          }]
+        }
+      }
+    );
+
+  </script>
+
+  <!-- GRADE INTERPRETATION -->
+
+  <div class="card mt-4 p-3">
+
+    <h6>GRADE INTERPRETATION</h6>
+
+    <small>
+
+      80 - 100 = A (Excellent)<br>
+      70 - 79 = B (Very Good)<br>
+      60 - 69 = C (Good)<br>
+      50 - 59 = D (Pass)<br>
+      Below 50 = F (Fail)
+
+    </small>
+
+  </div>
+
+  <!-- SIGNATURES -->
+
+  <div class="row mt-5 text-center">
+
+    <div class="col-md-6">
+
+      __________________________
+
+      <br>
+
+      Class Teacher
+
+    </div>
+
+    <div class="col-md-6">
+
+      __________________________
+
+      <br>
+
+      Headmaster
+
+    </div>
+
+  </div>
+
+  <!-- DOWNLOAD -->
+
+  <div class="d-flex justify-content-center justify-content-md-end mt-4">
+    <a
+      href="{{ url_for('report_bp.download_report',
+                       student_id=student.id,
+                       term=term,
+                       academic_year=year) }}"
+      class="btn btn-primary btn-lg shadow-sm rounded-pill px-4"
+      aria-label="Download {{ student.name }}'s terminal report as PDF"
+    >
+      <i class="bi bi-file-earmark-pdf-fill me-2" aria-hidden="true"></i>
+      Download Report
+    </a>
+  </div>
+  
+
+</div>
+
+{% endblock %}

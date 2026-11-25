@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<!-- ================= BACK BUTTON ================= -->
+<button onclick="history.back()" class="btn btn-secondary mb-3">
+  ← Back
+</button>
+
+<!-- ================= PAGE TITLE ================= -->
+<h2 class="mb-4">
+  💼 Accountant Dashboard (Finance)
+</h2>
+
+<!-- ================= KPI CARDS ================= -->
+<div class="row mb-4">
+
+  <!-- INCOME -->
+  <div class="col-md-3 mb-3">
+
+    <div class="card p-3 text-center shadow-sm h-100">
+
+      <h6>💰 Income</h6>
+
+      <h2 class="text-success fw-bold">
+        GHS {{ total_income or 0 }}
+      </h2>
+
+      <small class="text-muted">
+        Total payments received
+      </small>
+
+    </div>
+
+  </div>
+
+  <!-- EXPENSES -->
+  <div class="col-md-3 mb-3">
+
+    <div class="card p-3 text-center shadow-sm h-100">
+
+      <h6>💸 Expenses</h6>
+
+      <h2 class="text-danger fw-bold">
+        GHS {{ total_expense or 0 }}
+      </h2>
+
+      <small class="text-muted">
+        Total expenses recorded
+      </small>
+
+    </div>
+
+  </div>
+
+  <!-- PROFIT / LOSS -->
+  <div class="col-md-3 mb-3">
+
+    <div class="card p-3 text-center shadow-sm h-100">
+
+      <h6>📈 Profit / Loss</h6>
+
+      {% if profit >= 0 %}
+
+      <h2 class="text-success fw-bold">
+        GHS {{ profit }}
+      </h2>
+
+      <small class="text-success">
+        Profit
+      </small>
+
+      {% else %}
+
+      <h2 class="text-danger fw-bold">
+        GHS {{ profit | abs }}
+      </h2>
+
+      <small class="text-danger">
+        Loss
+      </small>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+  <!-- PAID INVOICES -->
+  <div class="col-md-3 mb-3">
+
+    <div class="card p-3 text-center shadow-sm h-100">
+
+      <h6>🧾 Paid Invoices</h6>
+
+      <h2 class="fw-bold">
+        {{ total_paid }} / {{ total_invoices }}
+      </h2>
+
+      <small class="text-muted">
+        Completed payments
+      </small>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= QUICK ACTIONS ================= -->
+<div class="card p-4 mb-4 shadow-sm">
+
+  <h5 class="mb-3">
+    ⚡ Quick Actions
+  </h5>
+
+  <div class="d-flex gap-2 flex-wrap">
+
+    <a href="{{ url_for('finance') }}" class="btn btn-dark">
+      💰 Finance
+    </a>
+
+    <a href="{{ url_for('invoices') }}" class="btn btn-primary">
+      🧾 Invoices
+    </a>
+
+    <a href="{{ url_for('payment_system') }}" class="btn btn-success">
+      💳 Record Payments
+    </a>
+
+    <a href="{{ url_for('expenses') }}" class="btn btn-danger">
+      💸 Expenses
+    </a>
+
+    <a href="{{ url_for('debtors') }}" class="btn btn-warning">
+      ⚠️ Debtors
+    </a>
+
+  </div>
+
+</div>
+
+<!-- ================= TOP DEBTORS ================= -->
+<div class="card p-4 mb-4 shadow-sm">
+
+  <h5 class="mb-3">
+    ⚠️ Top Debtors
+  </h5>
+
+  <div class="table-responsive">
+
+    <table class="table table-bordered align-middle">
+
+      <thead class="table-dark">
+
+        <tr>
+
+          <th>No.</th>
+
+          <th>Student</th>
+
+          <th>Balance</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        {% for d in debtors %}
+
+        <tr>
+
+          <td>{{ loop.index }}</td>
+
+          <td>{{ d.student.name }}</td>
+
+          <td class="text-danger fw-bold">
+            GHS {{ d.balance }}
+          </td>
+
+        </tr>
+
+        {% else %}
+
+        <tr>
+
+          <td colspan="3" class="text-center text-muted">
+            No debtors found
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+<!-- ================= RECENT PAYMENTS ================= -->
+<div class="card p-4 shadow-sm">
+
+  <h5 class="mb-3">
+    🧾 Recent Payments
+  </h5>
+
+  <div class="table-responsive">
+
+    <table class="table table-hover align-middle">
+
+      <thead class="table-dark">
+
+        <tr>
+
+          <th>No.</th>
+
+          <th>Student</th>
+
+          <th>Invoice Amount</th>
+
+          <th>Paid</th>
+
+          <th>Status</th>
+
+          <th>Date</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        {% for inv in recent_invoices %}
+
+        <tr>
+
+          <td>{{ loop.index }}</td>
+
+          <td>{{ inv.student.name }}</td>
+
+          <td>
+            GHS {{ inv.amount }}
+          </td>
+
+          <td class="text-success fw-bold">
+            GHS {{ inv.partial_paid or 0 }}
+          </td>
+
+          <td>
+
+            {% if inv.status == 'Paid' %}
+
+            <span class="badge bg-success">
+              Paid
+            </span>
+
+            {% elif inv.status == 'Partial' %}
+
+            <span class="badge bg-warning text-dark">
+              Partial
+            </span>
+
+            {% else %}
+
+            <span class="badge bg-danger">
+              Pending
+            </span>
+
+            {% endif %}
+
+          </td>
+
+          <td>
+
+            {% if inv.date_created %}
+
+            {{ inv.date_created.strftime('%Y-%m-%d') }}
+
+            {% else %}
+
+            N/A
+
+            {% endif %}
+
+          </td>
+
+        </tr>
+
+        {% else %}
+
+        <tr>
+
+          <td colspan="6" class="text-center text-muted">
+            No recent payments
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+{% endblock %}

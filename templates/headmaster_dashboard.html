@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h2 class="mb-1">{{ school.name if school else 'School' }} Headmaster Dashboard</h2>
+        <p class="text-muted mb-0">
+            Read-only overview of academic activity for your school.
+        </p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="text-muted">Students</div>
+                <div class="fs-3 fw-bold">{{ student_count }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="text-muted">Classes</div>
+                <div class="fs-3 fw-bold">{{ class_count }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="text-muted">Teachers</div>
+                <div class="fs-3 fw-bold">{{ teacher_count }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="text-muted">Headmasters</div>
+                <div class="fs-3 fw-bold">{{ headmaster_count }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="text-muted">Present today</div>
+                <div class="fs-3 fw-bold text-success">{{ present_today }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="text-muted">Absent today</div>
+                <div class="fs-3 fw-bold text-danger">{{ absent_today }}</div>
+            </div></div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="text-muted">Average recorded score</div>
+                <div class="fs-3 fw-bold">{{ "%.1f"|format(performance_average) }}%</div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" href="{{ url_for('headmaster_students') }}">View Students</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('headmaster_classes') }}">View Classes</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('headmaster_attendance') }}">View Attendance</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('headmaster_performance') }}">View Performance</a>
+            <a class="btn btn-outline-secondary" href="{{ url_for('change_password') }}">Change Password</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

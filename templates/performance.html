@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<button onclick="history.back()" class="btn btn-secondary mb-3">
+    ← Back </button>
+
+<h2 class="mb-4">
+    📊 Student Performance + GES Grade Analytics
+</h2>
+
+{% if selected_class %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Class: {{ selected_class.name }}</h4>
+    {% if session.get('role') == 'admin' %}
+    <a href="{{ url_for('performance_classes') }}" class="btn btn-outline-secondary btn-sm">
+        Choose Another Class
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- ================================= -->
+
+<!-- ADD PERFORMANCE -->
+
+<!-- ================================= -->
+
+<form method="POST" class="row g-2 mb-4">
+    {% if selected_class %}
+    <input type="hidden" name="class_id" value="{{ selected_class.id }}">
+    {% endif %}
+
+    <div class="col-md-2">
+        <select name="student_id" class="form-control" required>
+
+            <option value="">
+                Select Student
+            </option>
+
+            {% for s in students %}
+            <option value="{{ s.id }}">
+                {{ s.name }}
+            </option>
+            {% endfor %}
+
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <input type="text" name="subject" class="form-control" placeholder="Subject" required>
+    </div>
+
+    <div class="col-md-2">
+        <input type="number" name="class_score" class="form-control" placeholder="Class Score (30)" min="0" max="30"
+            required>
+    </div>
+
+    <div class="col-md-2">
+        <input type="number" name="exam_score" class="form-control" placeholder="Exam Score (70)" min="0" max="70"
+            required>
+    </div>
+
+    <div class="col-md-2">
+        <select name="term" class="form-control" required>
+
+            <option value="">
+                Term
+            </option>
+
+            <option>Term 1</option>
+            <option>Term 2</option>
+            <option>Term 3</option>
+
+        </select>
+    </div>
+
+    <div class="col-md-1">
+        <input type="text" name="academic_year" class="form-control" placeholder="2025/26" required>
+    </div>
+
+    <div class="col-md-1">
+        <button class="btn btn-success w-100">
+            Add
+        </button>
+    </div>
+
+</form>
+
+<!-- ================================= -->
+
+<!-- LOW PERFORMERS -->
+
+<!-- ================================= -->
+
+{% if low_performers %}
+
+<div class="alert alert-danger">
+    ❌ Low Performers:
+    {{ low_performers|join(', ') }}
+</div>
+{% endif %}
+
+<!-- ================================= -->
+
+<!-- LEADERBOARD -->
+
+<!-- ================================= -->
+
+<h4 class="mt-4">
+    🏆 Top Students (Leaderboard)
+</h4>
+
+<div class="card p-3 mb-4">
+
+    <ol>
+
+        {% for item in leaderboard[:5] %}
+
+        <li>
+            <b>{{ item.student }}</b>
+            —
+            GPA: {{ item.gpa }}
+            |
+            Avg: {{ item.avg }}
+        </li>
+
+        {% endfor %}
+
+    </ol>
+
+</div>
+
+<!-- ================================= -->
+
+<!-- PERFORMANCE TABLE -->
+
+<!-- ================================= -->
+
+<div class="card p-3">
+
+    <h4 class="mb-3">
+        📋 Performance Records
+    </h4>
+
+    <table class="table table-bordered table-hover text-center">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>S/N</th>
+
+                <th>Student</th>
+
+                <th>Subject</th>
+
+                <th>Class Score (30%)</th>
+
+                <th>Exam Score (70%)</th>
+
+                <th>Total Score (100%)</th>
+
+                <th>Grade</th>
+
+                <th>Remark</th>
+
+                <th>Term</th>
+
+                <th>Year</th>
+
+                <th>Date</th>
+
+                <th>Report</th>
+
+                <th>Actions</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for p, student in records %}
+
+            <tr>
+
+                <td>{{ loop.index }}</td>
+
+                <td>{{ student.name }}</td>
+
+                <td>{{ p.subject }}</td>
+
+                <td>{{ p.class_score }}</td>
+
+                <td>{{ p.exam_score }}</td>
+
+                <td>
+                    <strong>
+                        {{ p.total_score }}
+                    </strong>
+                </td>
+
+                <!-- GRADE -->
+
+                <td>
+
+                    <span class="badge
+                        {% if p.grade == 'A' %}bg-success
+                        {% elif p.grade == 'B' %}bg-primary
+                        {% elif p.grade == 'C' %}bg-info
+                        {% elif p.grade == 'D' %}bg-warning text-dark
+                        {% elif p.grade == 'E' %}bg-secondary
+                        {% else %}bg-danger{% endif %}">
+                        {{ p.grade }}
+                    </span>
+
+                </td>
+
+                <!-- REMARK -->
+
+                <td>
+
+                    {{ p.remark }}
+
+                </td>
+
+                <td>{{ p.term }}</td>
+
+                <td>{{ p.academic_year }}</td>
+
+                <td>
+                    {{ p.date.strftime('%Y-%m-%d') }}
+                </td>
+
+                <td>
+
+                    <a href="{{ url_for(
+                'report_card',
+                student_id=student.id,
+                term=p.term,
+                year=p.academic_year
+            ) }}" class="btn btn-primary btn-sm">
+
+                        View Report
+
+                    </a>
+
+                </td>
+
+                <td>
+                    <a href="{{ url_for('edit_performance', performance_id=p.id) }}"
+                       class="btn btn-outline-primary btn-sm">
+                        Edit
+                    </a>
+                </td>
+
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="13" class="text-center text-muted py-3">
+                    No performance records found.
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<!-- ================================= -->
+
+<!-- ANALYTICS -->
+
+<!-- ================================= -->
+
+<h4 class="mt-4">
+    📈 Analytics
+</h4>
+
+<div class="card p-3">
+
+    <canvas id="barChart"></canvas>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    new Chart(
+        document.getElementById("barChart"),
+        {
+            type: 'bar',
+
+            data: {
+
+                labels: {{ student_names| tojson }},
+
+        datasets: [{
+
+            label: 'Average Score',
+
+            data: {{ avg_scores| tojson }},
+
+        backgroundColor: '#0d6efd'
+
+            }]
+        }
+    }
+    );
+
+</script>
+
+{% endblock %}

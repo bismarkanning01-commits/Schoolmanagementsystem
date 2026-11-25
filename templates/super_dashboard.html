@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if read_only %}
+<a href="{{ dashboard_back_url }}" class="btn btn-secondary mb-3">
+    ← Back to Super Admin Dashboard
+</a>
+{% else %}
+<button onclick="history.back()" class="btn btn-secondary mb-3">
+    ← Back
+</button>
+{% endif %}
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <div class="admin-dashboard">
+
+        <h2>{{ school_name }} Admin Dashboard</h2>
+
+        <p class="text-muted">
+            Overview of {{ school_name }} performance
+        </p>
+
+        <!-- ================= STATS ================= -->
+        <div class="stats-grid">
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Students</span>
+                <strong class="dashboard-stat-value">{{ students }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Teachers</span>
+                <strong class="dashboard-stat-value">{{ teachers }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Invoices</span>
+                <strong class="dashboard-stat-value">{{ invoices }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Total Fees</span>
+                <strong class="dashboard-stat-value">GH₵ {{ "%.2f"|format(total_fees|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Fees Paid</span>
+                <strong class="dashboard-stat-value">GH₵ {{ "%.2f"|format(total_paid_fees|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Outstanding Fees</span>
+                <strong class="dashboard-stat-value">GH₵ {{ "%.2f"|format(outstanding_fees|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Revenue Collected</span>
+                <strong class="dashboard-stat-value">{{ "%.2f"|format(revenue|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Total Expenses</span>
+                <strong class="dashboard-stat-value">{{ "%.2f"|format(total_expenses|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Net Profit / Loss</span>
+                <strong class="dashboard-stat-value">{{ "%.2f"|format(profit|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">Received Today</span>
+                <strong class="dashboard-stat-value">GH₵ {{ "%.2f"|format(received_today|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">
+                    Received This Term
+                    {% if active_period %}<small>({{ active_period.term }})</small>{% endif %}
+                </span>
+                <strong class="dashboard-stat-value">GH₵ {{ "%.2f"|format(received_this_term|float) }}</strong>
+            </div>
+
+            <div class="dashboard-card">
+                <span class="dashboard-stat-label">
+                    Received This Academic Year
+                    {% if active_period %}<small>({{ active_period.academic_year }})</small>{% endif %}
+                </span>
+                <strong class="dashboard-stat-value">GH₵ {{ "%.2f"|format(received_this_year|float) }}</strong>
+            </div>
+
+        </div>
+
+        <!-- ================= CHART ================= -->
+        <div class="section">
+
+            <h4>Financial Overview</h4>
+            {% if not active_period %}
+            <p class="alert alert-warning">
+                Set the active term and academic year to see current term and yearly collections.
+                {% if read_only %}
+                Ask the school admin to set the active period.
+                {% else %}
+                <a href="{{ url_for('manage_academic_period') }}" class="alert-link">Set active period</a>
+                {% endif %}
+            </p>
+            {% endif %}
+            <p class="text-muted">
+                Revenue collected minus recorded expenses.
+                {% if profit >= 0 %}
+                Current result: <strong class="text-success">Profit</strong>.
+                {% else %}
+                Current result: <strong class="text-danger">Loss</strong>.
+                {% endif %}
+            </p>
+
+            <canvas id="chart" height="100"></canvas>
+
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <script>
+
+            const data = {{ chart_data | default([]) | tojson }};
+
+            new Chart(document.getElementById('chart'), {
+
+                type: 'bar',
+
+                data: {
+
+                    labels: data.map((_, i) => 'Payment ' + (i + 1)),
+
+                    datasets: [{
+
+                        label: 'Revenue Collected',
+
+                        data: data,
+
+                        backgroundColor: '#0d6efd'
+
+                    }]
+                }
+            });
+
+        </script>
+
+        <!-- ================= RECENT STUDENTS ================= -->
+        <div class="section">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h4 class="mb-0">Students by Class</h4>
+                <span class="badge bg-primary fs-6">
+                    {{ class_student_summaries|sum(attribute='count') }} students total
+                </span>
+            </div>
+
+            {% if class_student_summaries %}
+            <div class="row g-3 mb-4">
+                {% for summary in class_student_summaries %}
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <strong>{{ summary.classroom.name }}</strong>
+                            <span class="badge bg-secondary">
+                                {{ summary.count }} student{{ '' if summary.count == 1 else 's' }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            {% if summary.student_names %}
+                            <ul class="mb-0 ps-3">
+                                {% for student_name in summary.student_names %}
+                                <li>{{ student_name }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <span class="text-muted">No students enrolled in this class.</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">No classes have been set up for this school.</p>
+            {% endif %}
+
+            <h5>Recent Students</h5>
+
+            <table>
+
+                <tr>
+                    <th>Name</th>
+                    <th>Class</th>
+                </tr>
+
+                {% for s in recent_students %}
+
+                <tr>
+
+                    <td>{{ s.name }}</td>
+
+                    <td>
+
+                        {% if s.classroom %}
+                            {{ s.classroom.name }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+        <!-- ================= RECENT INVOICES ================= -->
+        <div class="section">
+
+            <h4>Recent Invoices</h4>
+
+            <table>
+
+                <tr>
+                    <th>No.</th>
+                    <th>Amount</th>
+                </tr>
+
+                {% for i in recent_invoices %}
+
+                <tr>
+
+                    <td>{{ loop.index }}</td>
+
+                    <td>{{ i.amount }}</td>
+
+                </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+        <!-- ================= ATTENDANCE OVERVIEW ================= -->
+        <div class="section">
+
+            <h4>📅 Attendance Overview</h4>
+
+            <div class="stats-grid">
+
+                <div class="dashboard-card">
+
+                    ✅ Present<br>
+
+                    {{ present_count }}
+
+                </div>
+
+                <div class="dashboard-card">
+
+                    ❌ Absent<br>
+
+                    {{ absent_count }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= RECENT ATTENDANCE ================= -->
+        <div class="section">
+
+            <h4>📋 Recent Attendance</h4>
+
+            <form method="GET" action="{{ dashboard_url }}" class="row g-2 align-items-end mb-3">
+                <div class="col-md-6">
+                    <label for="attendance_class_id" class="form-label">Select class</label>
+                    <select id="attendance_class_id" name="attendance_class_id" class="form-select">
+                        <option value="">All classes - latest attendance</option>
+                        {% for classroom in attendance_classes %}
+                        <option value="{{ classroom.id }}"
+                                {% if classroom.id == selected_attendance_class_id %}selected{% endif %}>
+                            {{ classroom.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary">View Attendance</button>
+                </div>
+            </form>
+
+            <h5>Attendance totals by class</h5>
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Class</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for summary in class_attendance_summaries %}
+                        <tr>
+                            <td>{{ summary.classroom.name }}</td>
+                            <td><span class="badge bg-success">{{ summary.present }}</span></td>
+                            <td><span class="badge bg-danger">{{ summary.absent }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No classes are registered.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if selected_attendance_class %}
+            <h5>Latest attendance: {{ selected_attendance_class.name }}</h5>
+            {% else %}
+            <h5>Latest attendance: All classes</h5>
+            {% endif %}
+
+            <table>
+
+                <tr>
+                    <th>Student</th>
+                    <th>Class</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+
+                {% for att, student in attendance_records %}
+
+                <tr>
+
+                    <td>{{ student.name }}</td>
+
+                    <td>{{ student.classroom.name if student.classroom else 'N/A' }}</td>
+
+                    <td>
+
+                        {% if att.status == 'Present' %}
+
+                            <span class="badge bg-success">
+                                Present
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-danger">
+                                Absent
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>{{ att.date }}</td>
+
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No attendance records found.</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+        <!-- ================= QUICK ACTIONS ================= -->
+        {% if not read_only %}
+        <div class="section">
+
+            <h4>Quick Actions</h4>
+
+            <div class="quick-actions">
+
+                <a href="/students"
+                   class="btn btn-primary">
+                    👨‍🎓 Manage Students
+                </a>
+
+                <a href="/invoices"
+                   class="btn btn-success">
+                    🧾 Manage Invoices
+                </a>
+
+                <a href="/attendance_classes"
+                   class="btn btn-warning">
+                    ✔ Attendance
+                </a>
+
+                <a href="/finance"
+                   class="btn btn-dark">
+                    💰 Finance
+                </a>
+
+                <a href="/register_teacher"
+                   class="btn btn-info text-white">
+                    👩‍🏫 Register Teacher
+                </a>
+
+                <a href="/register_accountant"
+                   class="btn btn-secondary">
+                    💼 Register Accountant
+                </a>
+
+                <a href="{{ url_for('manage_staff') }}"
+                   class="btn btn-danger">
+                    👥 Manage Staff
+                </a>
+
+                <a href="/change_password"
+                   class="btn btn-outline-primary">
+                    🔐 Change Password
+                </a>
+
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container py-4">
+    <h2 class="mb-2">Select Class Performance</h2>
+    <p class="text-muted mb-4">Choose a class to view its performance records.</p>
+
+    <div class="row g-3">
+        {% for classroom in classes %}
+        <div class="col-sm-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">{{ classroom.name }}</h4>
+                    <p class="text-muted">View and manage this class's performance records.</p>
+                    <a
+                        href="{{ url_for('performance', class_id=classroom.id) }}"
+                        class="btn btn-primary mt-auto"
+                    >
+                        Open Performance
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info mb-0">No classes are available.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

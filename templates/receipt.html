@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receipt</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .box { border: 1px solid #000; padding: 20px; }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>School Receipt</h2>
+
+<p><b>Student:</b> {{ student.name }}</p>
+<p><b>Class:</b> {{ student.classroom.name if student.classroom else 'N/A' }}</p>
+
+<hr>
+
+<h4>Payments</h4>
+
+<table border="1" width="100%" cellpadding="5">
+<tr>
+    <th>No.</th>
+    <th>Amount</th>
+    <th>Status</th>
+</tr>
+
+{% for inv in invoices %}
+<tr>
+    <td>{{ loop.index }}</td>
+    <td>{{ inv.amount }}</td>
+    <td>{{ inv.status }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<h3>Total Paid: GHS {{ total_paid }}</h3>
+
+</div>
+
+<script>
+window.print();
+</script>
+
+</body>
+</html>

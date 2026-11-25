@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<!-- ================= BACK BUTTON ================= -->
+<button onclick="history.back()" class="btn btn-secondary mb-3">
+  ← Back
+</button>
+
+<!-- ================= PAGE HEADER ================= -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+  <div>
+    <h2 class="mb-1">💰 Finance Management</h2>
+
+    <p class="text-muted">
+      Manage invoices, payments and student balances
+    </p>
+  </div>
+
+</div>
+
+<!-- FINANCIAL DASHBOARD -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Total Fees Expected</div>
+      <h3 class="text-primary mb-0">GH₵ {{ '%.2f'|format(total_fees) }}</h3>
+      <small class="text-muted">Tuition GH₵ {{ '%.2f'|format(fee_breakdown_total.tuition) }} · Sports GH₵ {{ '%.2f'|format(fee_breakdown_total.sports) }}</small>
+    </div></div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Total Fees Collected</div>
+      <h3 class="text-success mb-0">GH₵ {{ '%.2f'|format(total_collected) }}</h3>
+      <small class="text-muted">Received in the filtered period</small>
+    </div></div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Outstanding Fees</div>
+      <h3 class="text-danger mb-0">GH₵ {{ '%.2f'|format(total_balance) }}</h3>
+      <small class="text-muted">{{ students_with_outstanding }} students with a balance</small>
+    </div></div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Total Expenses</div>
+      <h3 class="text-danger mb-0">GH₵ {{ '%.2f'|format(total_expenses) }}</h3>
+    </div></div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Net Cash Flow</div>
+      <h3 class="{{ 'text-success' if net_cash_flow >= 0 else 'text-danger' }} mb-0">GH₵ {{ '%.2f'|format(net_cash_flow) }}</h3>
+      <small class="text-muted">Fees + other income − expenses</small>
+    </div></div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Staff Salaries</div>
+      <h3 class="mb-0">GH₵ {{ '%.2f'|format(salary_expenses) }}</h3>
+      <small class="text-muted">Expenses categorized as salary</small>
+    </div></div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Other Income</div>
+      <h3 class="text-success mb-0">GH₵ {{ '%.2f'|format(other_income_total) }}</h3>
+      <a href="{{ url_for('other_income') }}" class="small">Manage other income</a>
+    </div></div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <div class="text-muted">Students with Outstanding Fees</div>
+      <h3 class="text-warning mb-0">{{ students_with_outstanding }}</h3>
+      <a href="{{ url_for('debtors') }}" class="small">View outstanding accounts</a>
+    </div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Finance Areas</h5>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ url_for('manage_fees') }}" class="btn btn-outline-primary">Fee Structures</a>
+      <a href="{{ url_for('payment_system') }}" class="btn btn-outline-success">Record Payments</a>
+      <a href="{{ url_for('debtors') }}" class="btn btn-outline-warning">Outstanding Fees</a>
+      <a href="{{ url_for('invoices') }}" class="btn btn-outline-secondary">Invoices &amp; Receipts</a>
+      <a href="{{ url_for('expenses') }}" class="btn btn-outline-danger">Expenses</a>
+      <a href="{{ url_for('other_income') }}" class="btn btn-outline-success">Other Income</a>
+      <a href="{{ url_for('finance_dashboard') }}" class="btn btn-outline-dark">Financial Reports</a>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FILTER ================= -->
+<div class="card shadow-sm p-3 mb-4">
+
+  <form method="GET" class="row g-2 align-items-end">
+
+    <div class="col-md-2">
+      <label for="academic_year" class="form-label">Academic Year</label>
+      <select id="academic_year" name="academic_year" class="form-select">
+        <option value="">All years</option>
+        {% for year in academic_years %}
+        <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="term" class="form-label">Term</label>
+      <select id="term" name="term" class="form-select">
+        <option value="">All terms</option>
+        {% for term in terms %}
+        <option value="{{ term }}" {% if selected_term == term %}selected{% endif %}>{{ term }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="class_id" class="form-label">Class</label>
+      <select id="class_id" name="class_id" class="form-select">
+        <option value="">All classes</option>
+        {% for c in classes %}
+        <option value="{{ c.id }}" {% if selected_class == c.id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="start_date" class="form-label">From</label>
+      <input id="start_date" type="date" name="start_date" value="{{ start_date }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label for="end_date" class="form-label">To</label>
+      <input id="end_date" type="date" name="end_date" value="{{ end_date }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label for="payment_method" class="form-label">Payment Method</label>
+      <select id="payment_method" name="payment_method" class="form-select">
+        <option value="">All methods</option>
+        {% for method in ['Cash', 'Momo', 'Bank'] %}
+        <option value="{{ method }}" {% if selected_method == method %}selected{% endif %}>{{ method }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Apply Filters</button>
+      <a href="{{ url_for('finance') }}" class="btn btn-secondary">Reset</a>
+    </div>
+
+  </form>
+
+</div>
+
+<!-- ================= FINANCE TABLE ================= -->
+<div class="card shadow p-3">
+
+  <div class="table-responsive">
+
+    <table class="table table-hover align-middle">
+
+      <thead class="table-dark">
+
+        <tr>
+
+          <th>#</th>
+
+          <th>Student</th>
+
+          <th>Class</th>
+
+          <th>Academic Year / Term</th>
+
+          <th>Total</th>
+
+          <th>Fee Breakdown</th>
+
+          <th>Paid</th>
+
+          <th>Balance</th>
+
+          <th width="350">Status / Generate Invoice</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        {% for data in finance_data %}
+
+        <tr>
+
+          <!-- NUMBER -->
+          <td class="fw-bold">
+            {{ loop.index }}
+          </td>
+
+          <!-- STUDENT -->
+          <td class="fw-bold">
+            {{ data.student.name }}
+          </td>
+
+          <!-- CLASS -->
+          <td>
+
+            {% if data.student.classroom %}
+
+            <span class="badge bg-primary">
+              {{ data.student.classroom.name }}
+            </span>
+
+            {% else %}
+
+            <span class="badge bg-secondary">
+              N/A
+            </span>
+
+            {% endif %}
+
+          </td>
+
+          <td>{{ data.period or '—' }}</td>
+
+            <td class="fw-bold text-primary">
+              GHS {{ "%.2f"|format(data.total) }}
+            </td>
+
+          <td>
+            <small class="d-block">Tuition: GHS {{ "%.2f"|format(data.fee_breakdown.tuition) }}</small>
+            <small class="d-block">Sports Levy: GHS {{ "%.2f"|format(data.fee_breakdown.sports) }}</small>
+            <small class="d-block">Library: GHS {{ "%.2f"|format(data.fee_breakdown.library) }}</small>
+            <small class="d-block">ICT: GHS {{ "%.2f"|format(data.fee_breakdown.ict) }}</small>
+            {% if data.fee_breakdown.other > 0 %}
+            <small class="d-block">Other/legacy fees: GHS {{ "%.2f"|format(data.fee_breakdown.other) }}</small>
+            {% endif %}
+          </td>
+
+          <!-- PAID -->
+          <td class="text-success fw-bold">
+            GHS {{ data.paid }}
+          </td>
+
+          <!-- BALANCE -->
+          <td
+            class="
+              fw-bold
+              {% if data.balance <= 0 %}
+                text-success
+              {% elif data.balance < data.total / 2 %}
+                text-warning
+              {% else %}
+                text-danger
+              {% endif %}
+            "
+          >
+
+            GHS {{ data.balance }}
+
+          </td>
+
+          <!-- STATUS + ACTION -->
+          <td>
+          
+            {% if data.total == 0 %}
+          
+            <span class="badge bg-secondary mb-2">
+              No Fee Structure Set
+            </span>
+          
+            {% elif data.balance <= 0 %} <span class="badge bg-success mb-2">
+              Fully Paid
+              </span>
+          
+              {% else %}
+          
+              {% if data.paid > 0 %}
+          
+              <span class="badge bg-warning text-dark mb-2">
+                Part Payment
+              </span>
+          
+              {% else %}
+          
+              <span class="badge bg-danger mb-2">
+                Unpaid
+              </span>
+          
+              {% endif %}
+          
+              <a href="{{ url_for('invoices', student_id=data.student.id) }}" class="btn btn-primary btn-sm mt-2">
+                  Generate Invoice
+              </a>
+          
+              {% endif %}
+          
+          </td>
+
+        </tr>
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+{% endblock %}

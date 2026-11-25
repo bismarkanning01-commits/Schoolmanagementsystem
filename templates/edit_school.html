@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card border-0 shadow-sm mx-auto" style="max-width: 720px;">
+    <div class="card-body p-4">
+      <h2 class="mb-1">Edit School</h2>
+      <p class="text-muted mb-4">Update school details and subscription status.</p>
+
+      <form method="POST">
+        <div class="mb-3">
+          <label for="school_name" class="form-label">School name</label>
+          <input id="school_name" name="school_name" class="form-control"
+                 maxlength="150" required
+                 value="{{ form.get('school_name', school.name or '') }}">
+        </div>
+
+        <div class="mb-3">
+          <label for="address" class="form-label">Address</label>
+          <input id="address" name="address" class="form-control"
+                 maxlength="200"
+                 value="{{ form.get('address', school.address or '') }}">
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="plan" class="form-label">Plan</label>
+            {% set selected_plan = form.get('plan', school.plan or 'basic') %}
+            <select id="plan" name="plan" class="form-select" required>
+              {% for plan_name in ['basic', 'standard', 'premium'] %}
+              <option value="{{ plan_name }}" {% if selected_plan == plan_name %}selected{% endif %}>
+                {{ plan_name|title }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="subscription_status" class="form-label">Status</label>
+            {% set selected_status = form.get('subscription_status', school.subscription_status or 'active') %}
+            <select id="subscription_status" name="subscription_status" class="form-select" required>
+              {% for status in ['active', 'inactive'] %}
+              <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>
+                {{ status|title }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <a href="{{ url_for('saas_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

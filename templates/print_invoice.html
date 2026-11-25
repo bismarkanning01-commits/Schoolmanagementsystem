@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student Fee Invoice</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+        }
+
+        .invoice-box {
+            max-width: 900px;
+            margin: auto;
+            border: 1px solid #ccc;
+            padding: 25px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ccc;
+        }
+
+        th,
+        td {
+            padding: 10px;
+        }
+
+        .paid {
+            color: green;
+            font-weight: bold;
+        }
+
+        .balance {
+            color: red;
+            font-weight: bold;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+
+<body onload="window.print()">
+
+    <div class="invoice-box">
+
+        <div class="header">
+            <h1>{{ school_name }}</h1>
+            <h3>Student Fee Invoice</h3>
+        </div>
+
+        <hr>
+
+        <p>
+            <strong>Student:</strong>
+            {{ student.name }}
+        </p>
+
+        <p>
+            <strong>Class:</strong>
+            {% if student.classroom %}
+            {{ student.classroom.name }}
+            {% else %}
+            N/A
+            {% endif %}
+        </p>
+
+        <p>
+            <strong>Date:</strong>
+            {{ invoice.date_created.strftime('%d-%m-%Y') }}
+        </p>
+
+        {% if invoice.term and invoice.academic_year %}
+        <p>
+            <strong>Term:</strong>
+            {{ invoice.term }} ({{ invoice.academic_year }})
+        </p>
+        {% endif %}
+
+        <hr>
+
+        <table>
+
+            {% if invoice.term %}
+            <tr>
+                <th>Tuition Fee</th>
+                <td>GHS {{ "%.2f"|format(invoice.tuition_fee or 0) }}</td>
+            </tr>
+            <tr>
+                <th>Sports Levy</th>
+                <td>GHS {{ "%.2f"|format(invoice.sports_fee or 0) }}</td>
+            </tr>
+            <tr>
+                <th>Library</th>
+                <td>GHS {{ "%.2f"|format(invoice.library_fee or 0) }}</td>
+            </tr>
+            <tr>
+                <th>ICT</th>
+                <td>GHS {{ "%.2f"|format(invoice.ict_fee or 0) }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Invoice Total</th>
+                <td>
+                    GHS {{ "%.2f"|format(invoice.amount) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Total Paid</th>
+                <td class="paid">
+                    GHS {{ "%.2f"|format(total_paid) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Balance</th>
+                <td class="balance">
+                    GHS {{ "%.2f"|format(balance) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Status</th>
+                <td class="status">
+                    {{ invoice.status }}
+                </td>
+            </tr>
+
+        </table>
+
+        <h4 style="margin-top:30px;">
+            Payment History
+        </h4>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for payment in payments %}
+
+                <tr>
+
+                    <td>
+                        {{ payment.payment_date.strftime('%d-%m-%Y') }}
+                    </td>
+
+                    <td>
+                        GHS {{ "%.2f"|format(payment.amount_paid) }}
+                    </td>
+
+                    <td>
+                        {{ payment.method }}
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+
+                    <td colspan="3" style="text-align:center;">
+                        No payments recorded
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</body>
+
+</html>

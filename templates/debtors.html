@@ -1,0 +1,27 @@
+{% extends 'base.html' %} {% block content %}
+<!-- YOUR CSS (IMPORTANT FIX) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<button onclick="history.back()" class="btn btn-secondary mb-3">← Back</button>
+
+<h2>⚠️ Debtors List</h2>
+
+<table class="table table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>Student</th>
+      <th>Outstanding Balance</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for d in debtors %}
+    <tr>
+      <td>{{ d.student.name }}</td>
+      <td class="text-danger">GHS {{ d.balance }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

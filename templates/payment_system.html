@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-cash-coin text-success me-2"></i>Payment System</h2>
+            <p class="text-muted mb-0">Record each learner payment against an outstanding invoice.</p>
+        </div>
+        <a href="{{ url_for('invoices') }}" class="btn btn-outline-primary">Manage Invoices</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Total Fees / Invoiced</div>
+                    <div class="fs-3 fw-bold">GH₵ {{ '%.2f'|format(total_fees) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Payments Received</div>
+                    <div class="fs-3 fw-bold text-success">GH₵ {{ '%.2f'|format(total_received) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Outstanding Invoices</div>
+                    <div class="fs-3 fw-bold text-danger">GH₵ {{ '%.2f'|format(total_outstanding) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Total Expenses</div>
+                    <div class="fs-3 fw-bold text-danger">GH₵ {{ '%.2f'|format(total_expenses) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Profit / Loss</div>
+                    <div class="fs-3 fw-bold {{ 'text-success' if profit >= 0 else 'text-danger' }}">
+                        GH₵ {{ '%.2f'|format(profit|abs) }}
+                    </div>
+                    <small class="{{ 'text-success' if profit >= 0 else 'text-danger' }}">
+                        {{ 'Profit' if profit >= 0 else 'Loss' }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="mb-0">Receive a Payment</h5>
+                <form method="GET" action="{{ url_for('payment_system') }}"
+                      class="d-flex gap-2" role="search">
+                    <input type="search" name="q" value="{{ student_search }}"
+                           class="form-control form-control-sm"
+                           placeholder="Search learner name, admission no. or phone"
+                           aria-label="Search learners with outstanding invoices">
+                    <button type="submit" class="btn btn-sm btn-primary">Search</button>
+                    {% if student_search %}
+                    <a href="{{ url_for('payment_system') }}"
+                       class="btn btn-sm btn-outline-secondary">Clear</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Learner</th>
+                        <th>Class</th>
+                        <th>Term / Year</th>
+                        <th>Invoice Total</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Record Payment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in unpaid_invoices %}
+                    {% set balance = invoice.amount|float - (invoice.partial_paid or 0)|float %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ invoice.student.name }}</div>
+                            <small class="text-muted">{{ invoice.student.admission_no or 'No admission number' }}</small>
+                        </td>
+                        <td>{{ invoice.student.classroom.name if invoice.student.classroom else 'N/A' }}</td>
+                        <td>
+                            {% if invoice.term and invoice.academic_year %}
+                            {{ invoice.term }}<br><small class="text-muted">{{ invoice.academic_year }}</small>
+                            {% else %}
+                            <span class="text-muted">Legacy invoice</span>
+                            {% endif %}
+                        </td>
+                        <td>GH₵ {{ '%.2f'|format(invoice.amount|float) }}</td>
+                        <td class="text-success">GH₵ {{ '%.2f'|format((invoice.partial_paid or 0)|float) }}</td>
+                        <td class="text-danger fw-semibold">GH₵ {{ '%.2f'|format(balance) }}</td>
+                        <td>
+                            <form action="{{ url_for('pay_invoice', invoice_id=invoice.id) }}" method="POST"
+                                  class="d-flex flex-wrap gap-2">
+                                <input type="hidden" name="return_to" value="payment_system">
+                                <input type="number" name="amount" class="form-control form-control-sm"
+                                       min="0.01" max="{{ '%.2f'|format(balance) }}" step="0.01"
+                                       placeholder="Amount" aria-label="Payment amount for {{ invoice.student.name }}"
+                                       required style="width:120px">
+                                <select name="method" class="form-select form-select-sm"
+                                        aria-label="Payment method for {{ invoice.student.name }}" required style="width:110px">
+                                    <option value="Cash">Cash</option>
+                                    <option value="Momo">Momo</option>
+                                    <option value="Bank">Bank</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success">Record</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            {% if student_search %}
+                            No outstanding invoices match “{{ student_search }}”.
+                            {% else %}
+                            No outstanding invoices to collect.
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Complete Payment History</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>No.</th>
+                        <th>Date</th>
+                        <th>Learner</th>
+                        <th>Invoice</th>
+                        <th>Amount Received</th>
+                        <th>Method</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in recent_payments %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ payment.payment_date.strftime('%Y-%m-%d %H:%M') if payment.payment_date else 'N/A' }}</td>
+                        <td>{{ payment.student.name if payment.student else 'N/A' }}</td>
+                        <td>
+                            {% if payment.invoice and payment.invoice.term and payment.invoice.academic_year %}
+                            {{ payment.invoice.term }} ({{ payment.invoice.academic_year }})
+                            {% else %}
+                            Fee invoice
+                            {% endif %}
+                        </td>
+                        <td class="text-success fw-semibold">GH₵ {{ '%.2f'|format(payment.amount_paid|float) }}</td>
+                        <td>{{ payment.method or 'Cash' }}</td>
+                        <td>
+                            <a href="{{ url_for('print_invoice', id=payment.invoice_id) }}" target="_blank"
+                               class="btn btn-sm btn-outline-secondary">Print Receipt</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No payment transactions recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
